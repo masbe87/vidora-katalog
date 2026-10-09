@@ -1,0 +1,136 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin | Vidora</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #101116;
+      color: #f5f5f7;
+      font-family: Arial, sans-serif;
+    }
+    main { max-width: 600px; margin: 25px auto; }
+    h1 { color: #8b7cff; }
+    p { color: #aaa; line-height: 1.5; }
+    form {
+      display: grid;
+      gap: 14px;
+      background: #1b1c24;
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid #333542;
+    }
+    label { font-size: 14px; color: #ccc; }
+    input, select, button {
+      width: 100%;
+      padding: 13px;
+      border-radius: 8px;
+      border: 1px solid #444653;
+      font: inherit;
+    }
+    input, select {
+      background: #111219;
+      color: white;
+      margin-top: 7px;
+    }
+    button {
+      background: #7865ff;
+      color: white;
+      font-weight: bold;
+      border: 0;
+      cursor: pointer;
+    }
+    #status { white-space: pre-wrap; }
+    .hint { font-size: 13px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>VIDORA Admin</h1>
+  <p>Masukkan detail video untuk menambahkannya ke katalog.</p>  <form id="videoForm">
+    <label>Password admin
+      <input id="password" type="password"
+        autocomplete="current-password" required>
+    </label><label>Judul video
+  <input id="title" required maxlength="200">
+</label>
+
+<label>Kategori
+  <select id="category">
+    <option>Terbaru</option>
+    <option>Film</option>
+    <option>Drama</option>
+    <option>Anime</option>
+    <option>Lainnya</option>
+  </select>
+</label>
+
+<label>Durasi
+  <input id="duration" placeholder="Contoh: 1 jam 30 menit">
+</label>
+
+<label>URL poster (opsional)
+  <input id="poster" type="url" placeholder="https://...">
+</label>
+
+<label>URL embed video
+  <input id="embedUrl" type="url"
+    placeholder="https://..." required>
+</label>
+
+<label>URL halaman sumber (opsional)
+  <input id="pageUrl" type="url" placeholder="https://...">
+</label>
+
+<button type="submit">Simpan Video</button>
+<p id="status" role="status"></p>
+
+  </form>  <p class="hint">
+    Gunakan URL embed yang memang diizinkan untuk ditayangkan.
+  </p>
+</main><script>
+const form = document.getElementById("videoForm");
+const statusBox = document.getElementById("status");
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const password = document.getElementById("password").value;
+  const data = {
+    title: document.getElementById("title").value.trim(),
+    category: document.getElementById("category").value,
+    duration: document.getElementById("duration").value.trim(),
+    poster: document.getElementById("poster").value.trim(),
+    embedUrl: document.getElementById("embedUrl").value.trim(),
+    pageUrl: document.getElementById("pageUrl").value.trim()
+  };
+
+  statusBox.textContent = "Menyimpan video...";
+
+  try {
+    const response = await fetch("/api/admin/video", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + password
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Gagal menyimpan video");
+    }
+
+    statusBox.textContent = "Video berhasil ditambahkan!";
+    form.reset();
+  } catch (error) {
+    statusBox.textContent = "Gagal: " + error.message;
+  }
+});
+</script></body>
+</html>
