@@ -1,0 +1,53 @@
+
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tonton video di Vidora">
+  <title>Menonton | VIDORA</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="watch-page">
+  <header class="topbar">
+    <a class="brand" href="./">
+      <span class="brand-mark">▶</span><span>VIDORA</span>
+    </a>
+    <a class="back-link" href="./">← Kembali ke katalog</a>
+  </header>
+
+  <main class="watch-main">
+    <p class="eyebrow">VIDORA PLAYER</p>
+    <div id="watchStatus" class="watch-status">Memuat video...</div>
+
+    <section id="watchContent" hidden>
+      <div class="watch-player">
+        <iframe id="watchFrame"
+          title="Pemutar video"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+
+      <div class="watch-details">
+        <p id="watchCategory" class="card-category"></p>
+        <h1 id="watchTitle"></h1>
+        <p id="watchDuration" class="watch-duration"></p>
+        <a id="watchSource" class="provider-link"
+          href="#" target="_blank" rel="noopener noreferrer">
+          Buka sumber video ↗
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="brand" href="./">
+      <span class="brand-mark">▶</span><span>VIDORA</span>
+    </a>
+    <p>© <span id="watchYear"></span> Vidora</p>
+  </footer>
+
+  <script src="watch.js"></script>
+</body>
+</html>
