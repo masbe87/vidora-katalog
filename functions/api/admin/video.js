@@ -62,8 +62,8 @@ export async function onRequestDelete({ request, env }) {
 const expected = env.ADMIN_PASSWORD;
 const auth = request.headers.get("Authorization");
 
-if (!expected || auth !== "Bearer ${expected}") {
-return json({ error: "Akses ditolak" }, 401);
+if (!expected || auth !== `Bearer ${expected}`) {
+  return json({ error: "Akses ditolak" }, 401);
 }
 
 try {
