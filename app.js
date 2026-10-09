@@ -1,3 +1,4 @@
+
 (() => {
   let videos = [];
   let category = "Semua";
@@ -8,10 +9,6 @@
   const empty = document.getElementById("emptyState");
   const count = document.getElementById("resultCount");
   const sectionTitle = document.getElementById("sectionTitle");
-  const modal = document.getElementById("playerModal");
-  const frame = document.getElementById("playerFrame");
-  const playerTitle = document.getElementById("playerTitle");
-  const providerLink = document.getElementById("openProvider");
 
   document.getElementById("year").textContent =
     new Date().getFullYear();
@@ -67,13 +64,15 @@
     ];
 
     const poster = v.poster
-      ? `<img src="${esc(v.poster)}" alt=""
-          loading="lazy" onerror="this.remove()">`
+      ? `<img src="${esc(v.poster)}" alt="${esc(v.title)}"
+          loading="lazy"
+          onerror="this.style.display='none'">`
       : "";
 
     return `
-      <article class="video-card" tabindex="0" role="button"
-        aria-label="Putar ${esc(v.title)}" data-id="${esc(v.id)}">
+      <article class="video-card" tabindex="0" role="link"
+        aria-label="Tonton ${esc(v.title)}"
+        data-id="${esc(v.id)}">
         <div class="poster">
           <div class="poster-placeholder"
             style="--glow:${colors[index % colors.length]}">
@@ -106,7 +105,6 @@
   async function loadVideos() {
     try {
       const response = await fetch("/api/videos", {
-        method: "GET",
         cache: "no-store"
       });
 
@@ -115,16 +113,11 @@
       }
 
       const data = await response.json();
-
       const list = Array.isArray(data)
         ? data
-        : Array.isArray(data.videos)
-          ? data.videos
-          : Array.isArray(data.results)
-            ? data.results
-            : null;
+        : data.videos || data.results;
 
-      if (!list) {
+      if (!Array.isArray(list)) {
         throw new Error("Format data API tidak sesuai");
       }
 
@@ -133,7 +126,6 @@
       render();
     } catch (error) {
       console.error("Gagal memuat video:", error);
-
       grid.innerHTML = "";
       count.textContent = "Gagal memuat video";
       sectionTitle.textContent = "Katalog video";
@@ -141,74 +133,46 @@
     }
   }
 
-  function openVideo(id) {
-    const v = videos.find(item => String(item.id) === String(id));
-    if (!v) return;
+  function openWatchPage(id) {
+    const video = videos.find(
+      v => String(v.id) === String(id)
+    );
 
-    const url = String(v.embedUrl || "");
+    if (!video) return;
 
-    try {
-      const parsed = new URL(url);
-      if (!["https:", "http:"].includes(parsed.protocol)) {
-        throw new Error("URL tidak valid");
-      }
-    } catch {
-      alert("URL embed video belum valid.");
-      return;
-    }
-
-    playerTitle.textContent = v.title;
-    frame.src = url;
-    providerLink.href = v.pageUrl || url;
-    modal.hidden = false;
-    document.body.style.overflow = "hidden";
+    window.location.href =
+      `watch.html?id=${encodeURIComponent(video.id)}`;
   }
 
-  function closeVideo() {
-    modal.hidden = true;
-    frame.src = "about:blank";
-    document.body.style.overflow = "";
-  }
-
-  filters.addEventListener("click", e => {
-    const button = e.target.closest("[data-category]");
+  filters.addEventListener("click", event => {
+    const button = event.target.closest("[data-category]");
     if (!button) return;
 
     category = button.dataset.category;
 
-    filters.querySelectorAll(".filter").forEach(b =>
-      b.classList.toggle("active", b === button)
-    );
+    filters.querySelectorAll(".filter").forEach(item => {
+      item.classList.toggle("active", item === button);
+    });
 
     render();
   });
 
   search.addEventListener("input", render);
 
-  grid.addEventListener("click", e => {
-    const item = e.target.closest("[data-id]");
-    if (item) openVideo(item.dataset.id);
+  grid.addEventListener("click", event => {
+    const item = event.target.closest("[data-id]");
+    if (item) openWatchPage(item.dataset.id);
   });
 
-  grid.addEventListener("keydown", e => {
-    const item = e.target.closest("[data-id]");
+  grid.addEventListener("keydown", event => {
+    const item = event.target.closest("[data-id]");
 
-    if (item && (e.key === "Enter" || e.key === " ")) {
-      e.preventDefault();
-      openVideo(item.dataset.id);
+    if (item && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+      openWatchPage(item.dataset.id);
     }
-  });
-
-  document.getElementById("closePlayer")
-    .addEventListener("click", closeVideo);
-
-  modal.addEventListener("click", e => {
-    if (e.target.dataset.close === "true") closeVideo();
-  });
-
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && !modal.hidden) closeVideo();
   });
 
   loadVideos();
 })();
+ 
