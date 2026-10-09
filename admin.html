@@ -1,48 +1,28 @@
-<!DOCTYPE html><html lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin | Vidora</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #101116;
-      color: #f5f5f7;
-      font-family: Arial, sans-serif;
-    }
-    main { max-width: 600px; margin: 25px auto; }
-    h1 { color: #8b7cff; }
+    body { margin: 0; padding: 20px; background: #101116; color: #f5f5f7; font-family: Arial, sans-serif; }
+    main { max-width: 760px; margin: 20px auto; }
+    h1, h2 { color: #ff5da2; }
     p { color: #aaa; line-height: 1.5; }
-    form {
-      display: grid;
-      gap: 14px;
-      background: #1b1c24;
-      padding: 20px;
-      border-radius: 14px;
-      border: 1px solid #333542;
-    }
-    label { font-size: 14px; color: #ccc; }
-    input, select, button {
-      width: 100%;
-      padding: 13px;
-      border-radius: 8px;
-      border: 1px solid #444653;
-      font: inherit;
-    }
-    input, select {
-      background: #111219;
-      color: white;
-      margin-top: 7px;
-    }
-    button {
-      background: #7865ff;
-      color: white;
-      font-weight: bold;
-      border: 0;
-      cursor: pointer;
-    }
+    form, .panel { display: grid; gap: 14px; background: #1b1c24; padding: 18px; border-radius: 14px; border: 1px solid #333542; margin-bottom: 20px; }
+    label { display: block; font-size: 14px; color: #ccc; }
+    input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444653; font: inherit; }
+    input, select { background: #111219; color: white; margin-top: 7px; }
+    button { background: #7865ff; color: white; font-weight: bold; border: 0; cursor: pointer; }
+    button.secondary { background: #343541; }
+    button.danger { background: #a72f4c; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .video { padding: 14px 0; border-bottom: 1px solid #343541; }
+    .video:last-child { border-bottom: 0; }
+    .video strong { display: block; margin-bottom: 6px; overflow-wrap: anywhere; }
+    .meta { color: #aaa; font-size: 13px; margin-bottom: 10px; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     #status { white-space: pre-wrap; }
     .hint { font-size: 13px; }
   </style>
@@ -50,87 +30,202 @@
 <body>
 <main>
   <h1>VIDORA Admin</h1>
-  <p>Masukkan detail video untuk menambahkannya ke katalog.</p>  <form id="videoForm">
+  <p>Kelola katalog video. Masukkan password admin untuk memuat daftar, mengedit, menambah, atau menghapus video.</p>
+
+  <section class="panel">
     <label>Password admin
-      <input id="password" type="password"
-        autocomplete="current-password" required>
-    </label><label>Judul video
-  <input id="title" required maxlength="200">
-</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+    </label>
+    <button id="loadVideos" type="button">Muat daftar video</button>
+  </section>
 
-<label>Kategori
-  <select id="category">
-    <option>Terbaru</option>
-    <option>Film</option>
-    <option>Drama</option>
-    <option>Anime</option>
-    <option>Lainnya</option>
-  </select>
-</label>
+  <section class="panel">
+    <h2 id="formHeading">Tambah video</h2>
+    <form id="videoForm">
+      <label>Judul video
+        <input id="title" required maxlength="200">
+      </label>
+      <label>Kategori
+        <select id="category">
+          <option>Terbaru</option><option>Film</option><option>Drama</option><option>Anime</option><option>Lainnya</option>
+        </select>
+      </label>
+      <label>Durasi
+        <input id="duration" placeholder="Contoh: 10:21">
+      </label>
+      <label>URL poster (opsional)
+        <input id="poster" type="url" placeholder="https://...">
+      </label>
+      <label>URL embed video
+        <input id="embedUrl" type="url" placeholder="https://..." required>
+      </label>
+      <label>URL halaman sumber (opsional)
+        <input id="pageUrl" type="url" placeholder="https://...">
+      </label>
+      <button id="saveButton" type="submit">Simpan video</button>
+      <button id="cancelEdit" class="secondary" type="button" hidden>Batal edit</button>
+    </form>
+    <p id="status" role="status"></p>
+  </section>
 
-<label>Durasi
-  <input id="duration" placeholder="Contoh: 1 jam 30 menit">
-</label>
+  <section class="panel">
+    <h2>Daftar video</h2>
+    <p class="hint">Pilih Edit untuk memperbarui data yang sudah ada. Hapus meminta konfirmasi sebelum menghapus permanen.</p>
+    <div id="videoList">Tekan “Muat daftar video”.</div>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const form = $("videoForm");
+const statusBox = $("status");
+let editingId = null;
+let videos = [];
 
-<label>URL poster (opsional)
-  <input id="poster" type="url" placeholder="https://...">
-</label>
+function authHeaders(json = false) {
+  const headers = { Authorization: "Bearer " + $("password").value };
+  if (json) headers["Content-Type"] = "application/json";
+  return headers;
+}
 
-<label>URL embed video
-  <input id="embedUrl" type="url"
-    placeholder="https://..." required>
-</label>
+function setStatus(message) { statusBox.textContent = message; }
 
-<label>URL halaman sumber (opsional)
-  <input id="pageUrl" type="url" placeholder="https://...">
-</label>
+function resetForm() {
+  editingId = null;
+  form.reset();
+  $("formHeading").textContent = "Tambah video";
+  $("saveButton").textContent = "Simpan video";
+  $("cancelEdit").hidden = true;
+}
 
-<button type="submit">Simpan Video</button>
-<p id="status" role="status"></p>
+async function loadVideos() {
+  if (!$("password").value) {
+    setStatus("Masukkan password admin dulu.");
+    return;
+  }
+  $("loadVideos").disabled = true;
+  $("videoList").textContent = "Memuat daftar video...";
+  try {
+    const response = await fetch("/api/videos", { cache: "no-store" });
+    if (!response.ok) throw new Error("Gagal mengambil daftar video.");
+    const data = await response.json();
+    videos = Array.isArray(data) ? data : (data.videos || data.results || []);
+    renderVideos();
+    setStatus("Daftar video dimuat: " + videos.length + " video.");
+  } catch (error) {
+    $("videoList").textContent = "Gagal memuat daftar video.";
+    setStatus(error.message);
+  } finally {
+    $("loadVideos").disabled = false;
+  }
+}
 
-  </form>  <p class="hint">
-    Gunakan URL embed yang memang diizinkan untuk ditayangkan.
-  </p>
-</main><script>
-const form = document.getElementById("videoForm");
-const statusBox = document.getElementById("status");
+function renderVideos() {
+  const list = $("videoList");
+  list.replaceChildren();
+  if (!videos.length) {
+    list.textContent = "Belum ada video.";
+    return;
+  }
+
+  for (const video of videos) {
+    const item = document.createElement("div");
+    item.className = "video";
+    const title = document.createElement("strong");
+    title.textContent = video.title || "Video tanpa judul";
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = "ID " + video.id + " · " + (video.category || "Terbaru");
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "secondary";
+    edit.textContent = "Edit";
+    edit.addEventListener("click", () => startEdit(video));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "danger";
+    remove.textContent = "Hapus";
+    remove.addEventListener("click", () => deleteVideo(video));
+
+    actions.append(edit, remove);
+    item.append(title, meta, actions);
+    list.append(item);
+  }
+}
+
+function startEdit(video) {
+  editingId = Number(video.id);
+  $("title").value = video.title || "";
+  $("category").value = video.category || "Terbaru";
+  $("duration").value = video.duration || "";
+  $("poster").value = video.poster || "";
+  $("embedUrl").value = video.embedUrl || video.embed_url || "";
+  $("pageUrl").value = video.pageUrl || video.page_url || "";
+  $("formHeading").textContent = "Edit video ID " + editingId;
+  $("saveButton").textContent = "Simpan perubahan";
+  $("cancelEdit").hidden = false;
+  setStatus("Mengedit video ID " + editingId + ". Perubahan belum disimpan.");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteVideo(video) {
+  if (!confirm('Hapus video "' + (video.title || "tanpa judul") + '" (ID ' + video.id + ')? Tindakan ini tidak bisa dibatalkan.')) return;
+  try {
+    const response = await fetch("/api/admin/video?id=" + encodeURIComponent(video.id), {
+      method: "DELETE",
+      headers: authHeaders()
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Gagal menghapus video.");
+    if (editingId === Number(video.id)) resetForm();
+    setStatus(result.message || "Video berhasil dihapus.");
+    await loadVideos();
+  } catch (error) {
+    setStatus("Gagal: " + error.message);
+  }
+}
+
+$("loadVideos").addEventListener("click", loadVideos);
+$("cancelEdit").addEventListener("click", () => {
+  resetForm();
+  setStatus("Edit dibatalkan.");
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  const password = document.getElementById("password").value;
   const data = {
-    title: document.getElementById("title").value.trim(),
-    category: document.getElementById("category").value,
-    duration: document.getElementById("duration").value.trim(),
-    poster: document.getElementById("poster").value.trim(),
-    embedUrl: document.getElementById("embedUrl").value.trim(),
-    pageUrl: document.getElementById("pageUrl").value.trim()
+    title: $("title").value.trim(),
+    category: $("category").value,
+    duration: $("duration").value.trim(),
+    poster: $("poster").value.trim(),
+    embedUrl: $("embedUrl").value.trim(),
+    pageUrl: $("pageUrl").value.trim()
   };
-
-  statusBox.textContent = "Menyimpan video...";
-
+  const isEditing = editingId !== null;
+  setStatus(isEditing ? "Menyimpan perubahan..." : "Menyimpan video...");
+  $("saveButton").disabled = true;
   try {
-    const response = await fetch("/api/admin/video", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + password
-      },
+    const response = await fetch(isEditing
+      ? "/api/admin/video?id=" + encodeURIComponent(editingId)
+      : "/api/admin/video", {
+      method: isEditing ? "PUT" : "POST",
+      headers: authHeaders(true),
       body: JSON.stringify(data)
     });
-
     const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Gagal menyimpan video");
-    }
-
-    statusBox.textContent = "Video berhasil ditambahkan!";
-    form.reset();
+    if (!response.ok) throw new Error(result.error || "Gagal menyimpan video.");
+    setStatus(result.message || (isEditing ? "Video diperbarui." : "Video ditambahkan."));
+    resetForm();
+    await loadVideos();
   } catch (error) {
-    statusBox.textContent = "Gagal: " + error.message;
+    setStatus("Gagal: " + error.message);
+  } finally {
+    $("saveButton").disabled = false;
   }
 });
-</script></body>
+</script>
+</body>
 </html>
