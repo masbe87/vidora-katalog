@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Katalog video">
+  <title>VIDORA | Katalog Video</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Beranda"><span class="brand-mark">▶</span><span>VIDORA</span></a>
+    <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Cari video..." aria-label="Cari video"></div>
+    <button class="menu-button" id="menuButton" aria-label="Buka menu">☰</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">VIDEO COLLECTION</p>
+        <h1>Temukan tontonan<br><span>favorit lo.</span></h1>
+        <p class="hero-sub">Katalog video dalam satu tempat.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true"><div class="art-ring"></div><div class="art-play">▶</div><div class="art-line"></div></div>
+    </section>
+
+    <nav class="filters" id="filters" aria-label="Kategori video"></nav>
+
+    <section class="section-head">
+      <div><p class="eyebrow">PILIHAN KATALOG</p><h2 id="sectionTitle">Semua video</h2></div>
+      <span id="resultCount" class="result-count"></span>
+    </section>
+
+    <div id="videoGrid" class="video-grid"></div>
+    <div id="emptyState" class="empty-state" hidden>
+      <div class="empty-icon">⌕</div><h3>Video belum ditemukan</h3><p>Coba kata pencarian atau kategori lain.</p>
+    </div>
+
+    <!-- Tempat iklan: pasang kode dari jaringan iklan yang sudah menerima situs lo.
+         Jangan menaruh kode iklan sebelum akun/situs disetujui penyedia. -->
+    <section class="ad-slot" aria-label="Tempat iklan">
+      <span class="ad-label">ADVERTISEMENT</span>
+      <p>Ruang iklan</p>
+      <small>Ganti area ini dengan kode iklan resmi setelah situs disetujui.</small>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="brand" href="#"><span class="brand-mark">▶</span><span>VIDORA</span></a>
+    <p>Konten hanya untuk penonton yang memenuhi batas usia dan ketentuan hukum setempat.</p>
+    <p class="copyright">© <span id="year"></span> Vidora. All rights reserved.</p>
+  </footer>
+
+  <div class="player-modal" id="playerModal" hidden role="dialog" aria-modal="true" aria-label="Pemutar video">
+    <div class="modal-backdrop" data-close="true"></div>
+    <div class="player-panel">
+      <div class="player-top"><div><p class="eyebrow">SEDANG DIPUTAR</p><h2 id="playerTitle">Judul video</h2></div><button id="closePlayer" class="close-button" aria-label="Tutup pemutar">✕</button></div>
+      <div class="player-frame-wrap"><iframe id="playerFrame" title="Pemutar video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <p class="player-note">Jika video tidak bisa diputar, periksa apakah tautan embed dari penyedia video sudah benar.</p>
+      <a id="openProvider" class="provider-link" href="#" target="_blank" rel="noopener noreferrer">Buka di penyedia video ↗</a>
+    </div>
+  </div>
+
+  <script src="videos.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
