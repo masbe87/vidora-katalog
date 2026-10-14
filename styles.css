@@ -68,7 +68,8 @@ main{max-width:var(--max);margin:auto;padding:0 22px}
 .empty-icon{font-size:38px;color:var(--pink2)}
 .empty-state h3{color:var(--text);margin:8px 0}
 .ad-slot{margin:48px 0 28px;min-height:112px;border:1px dashed #3a365a;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#858ba9;text-align:center;padding:18px;background:linear-gradient(120deg,rgba(168,85,247,.035),rgba(56,189,248,.035));overflow:hidden}
-.ad-slot .vidora-ad{width:100%;max-width:900px;min-height:250px;display:flex;justify-content:center;align-items:center;overflow:hidden}
+.ad-slot .vidora-ad{width:100%;max-width:900px;aspect-ratio:18/5;height:auto;min-height:0;display:flex;justify-content:center;align-items:center;overflow:hidden}
+.ad-slot .vidora-ad > *{width:100% !important;max-width:100% !important;height:100% !important;max-height:100% !important;overflow:hidden}
 .ad-label{font-size:9px;letter-spacing:2px}
 .ad-slot p{margin:0;color:#b9bed5;font-weight:700}
 .ad-slot small{font-size:11px}
@@ -116,8 +117,8 @@ main{max-width:var(--max);margin:auto;padding:0 22px}
   .poster{border-radius:12px}
   .card-title{font-size:12px}
   .ad-slot{margin-top:35px}
-  .ad-slot .vidora-ad{width:100%;max-width:100%;min-height:250px}
-  .ad-slot .vidora-ad > *{max-width:100%;overflow:hidden}
+  .ad-slot .vidora-ad{width:100%;max-width:100%;aspect-ratio:18/5;height:auto;min-height:0}
+  .ad-slot .vidora-ad > *{width:100% !important;max-width:100% !important;height:100% !important;max-height:100% !important;overflow:hidden}
   .player-modal{padding:10px}
   .player-panel{padding:12px;border-radius:14px}
   .player-frame-wrap{aspect-ratio:9/16;max-height:65vh}
