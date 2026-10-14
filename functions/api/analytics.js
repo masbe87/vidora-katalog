@@ -18,7 +18,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     const video = await env.DB.prepare(
-      "SELECT id FROM videos WHERE id = ? LIMIT 1"
+      "SELECT id FROM video WHERE id = ? LIMIT 1"
     ).bind(videoId).first();
 
     if (!video) {
