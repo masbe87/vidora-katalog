@@ -35,6 +35,18 @@
       return;
     }
 
+    // Analytics is deliberately isolated from the video-loading path.
+    // If analytics fails, the player must continue working normally.
+    fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        video_id: String(video.id),
+        event: "page_view"
+      }),
+      keepalive: true
+    }).catch(error => console.debug("Analytics unavailable:", error));
+
     const title = video.title || "Video tanpa judul";
     const category = video.category || "Terbaru";
     const duration = video.duration || "";
