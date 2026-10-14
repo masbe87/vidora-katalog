@@ -25,18 +25,42 @@
     .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     #status { white-space: pre-wrap; }
     .hint { font-size: 13px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { background: #111219; border: 1px solid #333542; border-radius: 12px; padding: 14px; }
+    .stat-label { color: #aaa; font-size: 13px; }
+    .stat-value { font-size: 28px; font-weight: bold; margin-top: 5px; }
+    .rank { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #343541; }
+    .rank:last-child { border-bottom: 0; }
+    .rank-title { overflow-wrap: anywhere; }
+    .rank-views { white-space: nowrap; color: #aaa; }
+    @media (max-width: 520px) { .stats-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 <main>
   <h1>VIDORA Admin</h1>
-  <p>Kelola katalog video. Masukkan password admin untuk memuat daftar, mengedit, menambah, atau menghapus video.</p>
+  <p>Kelola katalog video dan lihat statistik kunjungan.</p>
 
   <section class="panel">
     <label>Password admin
       <input id="password" type="password" autocomplete="current-password" required>
     </label>
     <button id="loadVideos" type="button">Muat daftar video</button>
+  </section>
+
+  <section class="panel">
+    <h2>Statistik</h2>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Total views</div><div class="stat-value" id="totalViews">-</div></div>
+      <div class="stat"><div class="stat-label">Views hari ini</div><div class="stat-value" id="viewsToday">-</div></div>
+      <div class="stat"><div class="stat-label">Video ditonton</div><div class="stat-value" id="videosViewed">-</div></div>
+      <div class="stat"><div class="stat-label">Hari aktif</div><div class="stat-value" id="activeDays">-</div></div>
+    </div>
+    <div>
+      <p class="hint">Video paling banyak ditonton</p>
+      <div id="popularVideos">Tekan “Muat statistik”.</div>
+    </div>
+    <button id="loadStats" class="secondary" type="button">Muat statistik</button>
   </section>
 
   <section class="panel">
@@ -95,6 +119,54 @@ function resetForm() {
   $("formHeading").textContent = "Tambah video";
   $("saveButton").textContent = "Simpan video";
   $("cancelEdit").hidden = true;
+}
+
+async function loadStats() {
+  if (!$("password").value) {
+    setStatus("Masukkan password admin dulu.");
+    return;
+  }
+  $("loadStats").disabled = true;
+  $("popularVideos").textContent = "Memuat statistik...";
+  try {
+    const response = await fetch("/api/admin/analytics", {
+      cache: "no-store",
+      headers: authHeaders()
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Gagal mengambil statistik.");
+
+    $("totalViews").textContent = Number(data.totals?.totalViews || 0).toLocaleString("id-ID");
+    $("viewsToday").textContent = Number(data.totals?.viewsToday || 0).toLocaleString("id-ID");
+    $("videosViewed").textContent = Number(data.totals?.videosViewed || 0).toLocaleString("id-ID");
+    $("activeDays").textContent = Number(data.totals?.activeDays || 0).toLocaleString("id-ID");
+
+    const popular = Array.isArray(data.popular) ? data.popular : [];
+    const list = $("popularVideos");
+    list.replaceChildren();
+    if (!popular.length) {
+      list.textContent = "Belum ada page view.";
+    } else {
+      popular.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "rank";
+        const title = document.createElement("div");
+        title.className = "rank-title";
+        title.textContent = `${index + 1}. ${item.title || "Video tanpa judul"}`;
+        const views = document.createElement("div");
+        views.className = "rank-views";
+        views.textContent = `${Number(item.views || 0).toLocaleString("id-ID")} views`;
+        row.append(title, views);
+        list.append(row);
+      });
+    }
+    setStatus("Statistik berhasil dimuat.");
+  } catch (error) {
+    $("popularVideos").textContent = "Gagal memuat statistik.";
+    setStatus(error.message);
+  } finally {
+    $("loadStats").disabled = false;
+  }
 }
 
 async function loadVideos() {
@@ -183,12 +255,14 @@ async function deleteVideo(video) {
     if (editingId === Number(video.id)) resetForm();
     setStatus(result.message || "Video berhasil dihapus.");
     await loadVideos();
+    await loadStats();
   } catch (error) {
     setStatus("Gagal: " + error.message);
   }
 }
 
 $("loadVideos").addEventListener("click", loadVideos);
+$("loadStats").addEventListener("click", loadStats);
 $("cancelEdit").addEventListener("click", () => {
   resetForm();
   setStatus("Edit dibatalkan.");
@@ -220,6 +294,7 @@ form.addEventListener("submit", async (event) => {
     setStatus(result.message || (isEditing ? "Video diperbarui." : "Video ditambahkan."));
     resetForm();
     await loadVideos();
+    await loadStats();
   } catch (error) {
     setStatus("Gagal: " + error.message);
   } finally {
