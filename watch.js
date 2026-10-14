@@ -65,6 +65,21 @@
     frame.src = parsed.href;
     status.hidden = true;
     content.hidden = false;
+
+    // Catat kunjungan halaman video tanpa mengganggu pemutaran.
+    fetch("/api/analytics", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        video_id: String(video.id),
+        event: "page_view"
+      }),
+      keepalive: true
+    }).catch(error => {
+      console.warn("Analytics gagal dicatat:", error);
+    });
   } catch (error) {
     console.error(error);
     status.textContent = "Gagal memuat video. Coba muat ulang halaman.";
